@@ -52,11 +52,11 @@ end
 -- stream_data (the data you wish to send)
 function _M.put_batch(self, _event_information, _batch_size)
     if not _batch_size then _batch_size = default_batch_size end
-    if not self.batch[_event_information.bucket_name] then
-        self.batch[_event_information.bucket_name] = {} 
+    if not self.batch[_event_information.bucket_name..(_event_information.file_name or "")] then
+        self.batch[_event_information.bucket_name..(_event_information.file_name or "")] = {} 
     end
-    local _batch_length = #(self.batch[_event_information.bucket_name])+1
-    self.batch[_event_information.bucket_name][_batch_length] = _event_information.stream_data
+    local _batch_length = #(self.batch[_event_information.bucket_name..(_event_information.file_name or "")])+1
+    self.batch[_event_information.bucket_name..(_event_information.file_name or "")][_batch_length] = _event_information.stream_data
     if _batch_length >= _batch_size then
         _M.put_record(self, _event_information, true)
     end
@@ -78,8 +78,8 @@ function _M.put_record(self, _event_information, _batch)
     
     local _body
     if _batch then
-        _body = concat(self.batch[_event_information.bucket_name],string.char(10))
-        self.batch[_event_information.bucket_name] = {}
+        _body = concat(self.batch[_event_information.bucket_name..(_event_information.file_name or "")],string.char(10))
+        self.batch[_event_information.bucket_name..(_event_information.file_name or "")] = {}
     else
         _body = _event_information.stream_data
     end
